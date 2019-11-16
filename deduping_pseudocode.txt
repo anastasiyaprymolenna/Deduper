@@ -1,0 +1,109 @@
+~ DEDUPLICATING PSEUDOCODE ~
+Strategy for writing a Reference Based PCR Duplicate Removal tool. 
+
+test files for this found courtesy of Dr. Leslie Coonrod @ /projects/bgmp/shared/deduper/test.sam
+
+-- DEFINE THE PROBLEM --
+
+PCR duplicates in NGS sequencing data can implicate downstream analysis. Because depth of coverage is an important factor, PCR duplicates can mistakenly increase coverage and, 
+if not removed, can imply high confidence for variant calling when it's simply a copy of another read. Therefore, bioinformatics algorithms must be applied in order to filter these 
+duplicate reads out. 
+
+
+-- ALGORITHM GOAL --
+
+Input: 
+	Include a properly formated input sam file (a sam file of uniquely mapped reads)
+
+Do:
+	remove all PCR duplicates (retain only a single copy of each read). 
+
+Output: 
+	Include a properly formated expected output sam file
+
+ALSO:
+	design your algorithm for single-end data, with 96 UMIs
+	Avoid loading everything into memory. 
+	Discard any UMIs with errors (or error correct, if you're feeling ambitious).
+
+
+-- PSEUDOCODE AS FOLLOWS --
+
+Step 1) Bash:
+	
+samtools Sort alignments by leftmost coordinates and chromosomes
+
+Step 2) Python:
+
+Argparse to allow options for user input:
+	User input will be a sam file of uniquely mapped reads
+	also input list of known UMIS for reference
+
+def convert_phred(qual_sequence):
+        '''Converts a single character into a phred score'''
+        # initialize empty dictionary to append scores to
+        # for each letter in the quality sequence initialize an empty array with the length of the sequence
+        # counter to keep track of which index the following loop is on
+        # itterate through each letter of the quality sequence and convert the letter to a numerical score
+        # insert the score into the mean score list for the appropriate position
+        # incriment counter
+        # initialize summation of all known scores
+        # iterate through each score in the list of quality scores and add to the total score
+        # take the average score for a quality sequence
+        return average_score
+
+	EXAMPLE function output: convert_phred("B7C")
+	return = 29.7		
+		
+def check_bitflag(number):
+	'''Check for the presense of a specified bitflag '''
+	if bitflag is present:
+		confirmation = TRUE
+	if bitflag is not present:
+		confirmation = FALSE
+	return(confirmation)
+		
+	EXAMPLE function output: check_bitflag(16)
+	return = TRUE
+
+Put all unique UMIS into a list by looking at the QNAME while writing out. (UMI information will be in the QNAME, like so: NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT)
+
+initiate an dictionary to store the current read being compared. (key = (strandedness, UMI, adjusted left most starting position), value = sequence)
+open out.write file ONCE:
+initiate coiunter to keep track of the chromosome
+
+Iterate through the SAM file:
+	if the chromosome has changed in the read on the current read, Flush to write out after every chromosome
+		increment chromosome counter 
+	if UMI of the read is not in the known UMI list:
+		continue
+	if check_bitflag() = FALSE then the read is a complement:
+		Parse CIGAR string checking for soft clipping at the beggining, subtract from leftmost start position
+		if strandedness, UMI, and Adjusted left most position as a tuple, is not in the dictionary, put it in there. This will be a key in the dictionary, sequence is the value
+		elif the strandedness, UMI, and Adjusted left most position combo in dictionary compare the quality score to the stored dictionary sequence
+			if the quality score is better ammend the currently stored read in the dictionary to the better quality one
+			else, pass the line and ignore it because it is a PCR duplicate
+		elif the strandedness, UMI, and Adjusted left most position combo is not in the dictionary 
+			continue 
+		continue 
+	
+	if check_bitflag() = TRUE then the read is a reverse complement:
+		Parse CIGAR string to add up end-soft clips (S), matchings (M), skips in the read (N), and deletions (D) and add to the left most aligned position
+		if strandedness, UMI, and Adjusted left most position as a tuple, is not in the dictionary, put it in there. This will be a key in the dictionary, sequence is the value
+		elif the strandedness, UMI, and Adjusted left most position combo in dictionary compare the quality score to the stored dictionary sequence
+			if the quality score is better ammend the currently stored read.
+			else, simply readline() without storing a variable to pass the line and ignore it because it is a PCR duplicate
+		elif the strandedness, UMI, and Adjusted left most position combo is not in the dictionary 
+			continue 
+		continue	
+	
+close out.write file
+
+
+
+
+
+
+
+
+	
