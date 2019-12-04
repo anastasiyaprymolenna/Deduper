@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#SBATCH --account=bgmp          ### SLURM account which will be charged for the job
+#SBATCH --partition=bgmp        ### Partition (like a queue in PBS)
+#SBATCH --job-name=deduper      ### Job Name
+#SBATCH --output=deduper.out         ### File in which to store job output
+#SBATCH --error=deduper.err          ### File in which to store job error messages
+#SBATCH --time=0-12:00:00       ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1               ### Node count required for the job
+#SBATCH --ntasks-per-node=1     ### Nuber of tasks to be launched per Node
+#SBATCH --cpus-per-task=1       ### Number of cpus (cores) per task
+#SBATCH --mail-user=aprymole@uoregon.edu
+#SBATCH --mail-type=ALL
+
+conda activate bgmp_py3
+ml samtools
+
+/usr/bin/time -v samtools view -S -b /projects/bgmp/shared/deduper/Dataset1.sam > /projects/bgmp/aprymole/Bi624/Deduping/Dataset1.bam
+/usr/bin/time -v samtools sort /projects/bgmp/aprymole/Bi624/Deduping/Dataset1.bam -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset1.sorted.bam
+/usr/bin/time -v samtools view -h -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset1.sam /projects/bgmp/aprymole/Bi624/Deduping/Dataset1.sorted.bam
+
+/usr/bin/time -v samtools view -S -b /projects/bgmp/shared/deduper/Dataset2.sam > /projects/bgmp/aprymole/Bi624/Deduping/Dataset2.bam
+/usr/bin/time -v samtools sort /projects/bgmp/aprymole/Bi624/Deduping/Dataset2.bam -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset2.sorted.bam
+/usr/bin/time -v samtools view -h -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset2.sam /projects/bgmp/aprymole/Bi624/Deduping/Dataset2.sorted.bam
+
+/usr/bin/time -v samtools view -S -b /projects/bgmp/shared/deduper/Dataset3.sam > /projects/bgmp/aprymole/Bi624/Deduping/Dataset3.bam
+/usr/bin/time -v samtools sort /projects/bgmp/aprymole/Bi624/Deduping/Dataset3.bam -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset3.sorted.bam
+/usr/bin/time -v samtools view -h -o /projects/bgmp/aprymole/Bi624/Deduping/Dataset3.sam /projects/bgmp/aprymole/Bi624/Deduping/Dataset3.sorted.bam
+
+cd /projects/bgmp/aprymole/Bi624/Deduping/
+
+/usr/bin/time -v ./Prymolenna_deduper.py -f Dataset1.sam -u Deduper/STL96.txt -o Dataset1
+/usr/bin/time -v ./Prymolenna_deduper.py -f Dataset2.sam -u Deduper/STL96.txt -o Dataset2
+/usr/bin/time -v ./Prymolenna_deduper.py -f Dataset3.sam -u Deduper/STL96.txt -o Dataset3
